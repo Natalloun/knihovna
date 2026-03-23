@@ -1,4 +1,5 @@
-﻿using Knihovna;
+﻿using knihovna;
+using Knihovna;
 using MongoDB.Driver;
 
 class Program
@@ -46,6 +47,9 @@ class Program
 
         var reader = context.GetCollection<Ctenar>("readers");
 
+        var copiesCollection = context.GetCollection<Exem>("copies");
+        var loansCollection = context.GetCollection<Pujc>("loans");
+
         while (true)
         {
             Console.WriteLine("\n--- MENU ---");
@@ -57,6 +61,10 @@ class Program
             Console.WriteLine("6 - Přidat čtenáře");
             Console.WriteLine("7 - Upravit čtenáře");
             Console.WriteLine("8 - Deaktivovat čtenáře");
+            Console.WriteLine("9 - Přidat exemplář knihy");
+            Console.WriteLine("10 - Zobrazit exempláře knih");
+            Console.WriteLine("11 - Vytvořit výpůjčku");
+            Console.WriteLine("12 - Vrátit knihu");
             Console.WriteLine("0 - Konec");
 
             Console.Write("Vyber: ");
@@ -203,6 +211,92 @@ class Program
                 await reader.UpdateOneAsync(c => c._id == id, update);
 
                 Console.WriteLine("Čtenář deaktivován");
+            }
+            else if (volba == "9")
+            {
+                Console.WriteLine("Seznam knih:");
+                foreach (var book in books)
+                {
+                    Console.WriteLine($"{book._id} | {book.title} | {book.author}");
+                }
+
+                Console.Write("Zadej ID knihy, ke které chceš přidat exemplář: ");
+                var bookId = MongoDB.Bson.ObjectId.Parse(Console.ReadLine());
+
+                Console.Write("Zadej inventární číslo exempláře: ");
+                string inventoryNumber = Console.ReadLine();
+
+                var newCopy = new Exem(bookId, inventoryNumber);
+
+                await copiesCollection.InsertOneAsync(newCopy);
+                Console.WriteLine("Exemplář přidán");
+            }
+            else if (volba == "10")
+            {
+                var copies = await copiesCollection.Find(_ => true).ToListAsync();
+
+                Console.WriteLine("Seznam exemplářů:");
+                foreach (var copy in copies)
+                {
+                    var book = await bookCollection.Find(b => b._id == copy.bookId).FirstOrDefaultAsync();
+                    Console.WriteLine($"{copy._id} | {book.title} | Inventární číslo: {copy.inventoryNumber} | Stav: {copy.status}");
+                }
+            }
+            else if (volba == "11")
+            {
+                Console.Write("Zadej ID čtenáře: ");
+                var readerId = MongoDB.Bson.ObjectId.Parse(Console.ReadLine());
+
+                // načti dostupné exempláře
+                var availableCopies = await copiesCollection.Find(c => c.status == "available").ToListAsync();
+                Console.WriteLine("Dostupné knihy k výpůjčce:");
+                foreach (var copy in availableCopies)
+                {
+                    var book = await bookCollection.Find(b => b._id == copy.bookId).FirstOrDefaultAsync();
+                    Console.WriteLine($"{copy._id} | {book.title} | {book.author} | Inventární číslo: {copy.inventoryNumber}");
+                }
+
+                Console.Write("Zadej ID exempláře k výpůjčce: ");
+                var copyId = MongoDB.Bson.ObjectId.Parse(Console.ReadLine());
+
+                var loan = new Pujc(readerId, copyId, DateTime.Now, DateTime.Now.AddDays(14));
+                await loansCollection.InsertOneAsync(loan);
+
+                // změna stavu exempláře na "loaned"
+                var updateCopy = Builders<Exem>.Update.Set(c => c.status, "loaned");
+                await copiesCollection.UpdateOneAsync(c => c._id == copyId, updateCopy);
+
+                Console.WriteLine("Kniha úspěšně vypůjčena");
+            }
+            else if (volba == "12")
+            {
+                Console.Write("Zadej ID čtenáře pro vrácení knih: ");
+                var readerId = MongoDB.Bson.ObjectId.Parse(Console.ReadLine());
+
+                // aktivní výpůjčky
+                var activeLoans = await loansCollection.Find(l => l.readerId == readerId && l.returnDate == null).ToListAsync();
+                Console.WriteLine("Aktivní výpůjčky:");
+                foreach (var loan in activeLoans)
+                {
+                    var copy = await copiesCollection.Find(c => c._id == loan.copyId).FirstOrDefaultAsync();
+                    var book = await bookCollection.Find(b => b._id == copy.bookId).FirstOrDefaultAsync();
+                    Console.WriteLine($"{loan._id} | {book.title} | {book.author} | Inventární číslo: {copy.inventoryNumber} | Termín: {loan.dueDate}");
+                }
+
+                Console.Write("Zadej ID výpůjčky k vrácení: ");
+                var loanId = MongoDB.Bson.ObjectId.Parse(Console.ReadLine());
+
+                var loanToReturn = await loansCollection.Find(l => l._id == loanId).FirstOrDefaultAsync();
+
+                // aktualizace vrácení
+                var updateLoan = Builders<Pujc>.Update.Set(l => l.returnDate, DateTime.Now);
+                await loansCollection.UpdateOneAsync(l => l._id == loanId, updateLoan);
+
+                // změna stavu exempláře zpět na "available"
+                var updateCopy = Builders<Exem>.Update.Set(c => c.status, "available");
+                await copiesCollection.UpdateOneAsync(c => c._id == loanToReturn.copyId, updateCopy);
+
+                Console.WriteLine("Kniha úspěšně vrácena");
             }
             else if (volba == "0")
             {
