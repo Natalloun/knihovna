@@ -1,14 +1,12 @@
 using MongoDB.Bson;
 
-namespace Knihovna;
-
 public class Knih
 {
     public ObjectId _id;
     public string title;
     public string author;
     public string isbn;
-    public int           year;
+    public int year;
     public string category;
 
     public Knih(string title, string author, string isbn, int year, string category)
