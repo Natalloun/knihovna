@@ -44,6 +44,7 @@ class Program
 
         var books = await bookCollection.Find(_ => true).ToListAsync();
 
+        var reader = context.GetCollection<Ctenar>("readers");
 
         while (true)
         {
@@ -52,6 +53,10 @@ class Program
             Console.WriteLine("2 - Přidat knihu");
             Console.WriteLine("3 - Upravit knihu");
             Console.WriteLine("4 - Smazat knihu");
+            Console.WriteLine("5 - Zobraz čtenáře");
+            Console.WriteLine("6 - Přidat čtenáře");
+            Console.WriteLine("7 - Upravit čtenáře");
+            Console.WriteLine("8 - Deaktivovat čtenáře");
             Console.WriteLine("0 - Konec");
 
             Console.Write("Vyber: ");
@@ -59,7 +64,6 @@ class Program
 
             if (volba == "1")
             {
-                var allbooks = await bookCollection.Find(_ => true).ToListAsync();
 
                 Console.WriteLine("SEZNAM KNIH");
 
@@ -116,10 +120,95 @@ class Program
 
                 Console.WriteLine("Kniha smazána");
             }
+            else if (volba == "5")
+            {
+                var readers = await reader.Find(_ => true).ToListAsync();
+
+                Console.WriteLine("SEZNAM ČTENÁŘŮ");
+
+                foreach (Ctenar c in readers)
+                {
+                    Console.WriteLine(
+                        $"ID: {c._id} | " +
+                        $"Karta: {c.cardNumber} | " +
+                        $"Uživatelské jméno: {c.usernameReader} | " +
+                        $"Jméno: {c.firstName} {c.lastName} | " +
+                        $"Email: {c.email} | " +
+                        $"Aktivní: {c.isActive}"
+                    );
+                }
+            }
+            else if (volba == "6")
+            {
+                Console.Write("Jméno: ");
+                string firstName = Console.ReadLine();
+
+                Console.Write("Příjmení: ");
+                string lastName = Console.ReadLine();
+
+                Console.Write("Email: ");
+                string email = Console.ReadLine();
+
+                Console.Write("Uživatelské jméno: ");
+                string usernameReader = Console.ReadLine();
+
+                Console.Write("Číslo průkazky: ");
+                string cardNumber = Console.ReadLine();
+
+                // Vytvoření čtenáře podle tvé třídy
+                var newReader = new Ctenar(cardNumber, usernameReader, firstName, lastName, email);
+
+                await reader.InsertOneAsync(newReader);
+
+                Console.WriteLine("Čtenář přidán");
+            }
+            else if (volba == "7")
+            {
+                Console.Write("Zadej ID čtenáře: ");
+                string idInput = Console.ReadLine();
+                var id = MongoDB.Bson.ObjectId.Parse(idInput);
+
+                Console.Write("Nové jméno: ");
+                string firstName = Console.ReadLine();
+
+                Console.Write("Nové příjmení: ");
+                string lastName = Console.ReadLine();
+
+                Console.Write("Nové username: ");
+                string usernameReader = Console.ReadLine();
+
+                Console.Write("Nový email: ");
+                string email = Console.ReadLine();
+
+                // Přidána změna usernameReader
+                var update = Builders<Ctenar>.Update
+                    .Set(c => c.firstName, firstName)
+                    .Set(c => c.lastName, lastName)
+                    .Set(c => c.usernameReader, usernameReader)
+                    .Set(c => c.email, email);
+
+                await reader.UpdateOneAsync(c => c._id == id, update);
+
+                Console.WriteLine("Čtenář upraven");
+            }
+            else if (volba == "8")
+            {
+                Console.Write("Zadej ID čtenáře: ");
+                string idInput = Console.ReadLine();
+                var id = MongoDB.Bson.ObjectId.Parse(idInput);
+
+                var update = Builders<Ctenar>.Update
+                    .Set(c => c.isActive, false);
+
+                await reader.UpdateOneAsync(c => c._id == id, update);
+
+                Console.WriteLine("Čtenář deaktivován");
+            }
             else if (volba == "0")
             {
                 break;
             }
         }
+
     }
 }

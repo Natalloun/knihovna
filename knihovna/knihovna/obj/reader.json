@@ -1,0 +1,18 @@
+[
+  {
+    "cardNumber": "1234567890",
+    "username": "jdoe",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "jdoe@example.com",
+    "isActive": true
+  },
+  {
+    "cardNumber": "1234567891",
+    "username": "asmith",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "email": "asmith@example.com",
+    "isActive": true
+  }
+]
