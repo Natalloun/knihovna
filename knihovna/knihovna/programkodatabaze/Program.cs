@@ -65,6 +65,7 @@ class Program
             Console.WriteLine("10 - Zobrazit exempláře knih");
             Console.WriteLine("11 - Vytvořit výpůjčku");
             Console.WriteLine("12 - Vrátit knihu");
+            Console.WriteLine("13 - Hledat Knihu");
             Console.WriteLine("0 - Konec");
 
             Console.Write("Vyber: ");
@@ -297,6 +298,41 @@ class Program
                 await copiesCollection.UpdateOneAsync(c => c._id == loanToReturn.copyId, updateCopy);
 
                 Console.WriteLine("Kniha úspěšně vrácena");
+            }
+            else if (volba == "13")
+            {
+                Console.WriteLine("Vyber typ hledání:");
+                Console.WriteLine("1 - Podle názvu");
+                Console.WriteLine("2 - Podle autora");
+                Console.WriteLine("3 - Podle ISBN");
+                Console.WriteLine("4 - Podle kategorie");
+                Console.Write("Volba: ");
+                string searchType = Console.ReadLine();
+
+                Console.Write("Zadej hledaný text: ");
+                string query = Console.ReadLine();
+
+                List<Knih> results = new List<Knih>();
+
+                if (searchType == "1")
+                    results = await bookCollection.Find(b => b.title.Contains(query)).ToListAsync();
+                else if (searchType == "2")
+                    results = await bookCollection.Find(b => b.author.Contains(query)).ToListAsync();
+                else if (searchType == "3")
+                    results = await bookCollection.Find(b => b.isbn.Contains(query)).ToListAsync();
+                else if (searchType == "4")
+                    results = await bookCollection.Find(b => b.category.Contains(query)).ToListAsync();
+                else
+                {
+                    Console.WriteLine("Neplatná volba");
+                    return;
+                }
+
+                Console.WriteLine("Nalezené knihy:");
+                foreach (var book in results)
+                {
+                    Console.WriteLine($"{book._id} | {book.title} | {book.author} | ISBN: {book.isbn} | Kategorie: {book.category}");
+                }
             }
             else if (volba == "0")
             {
