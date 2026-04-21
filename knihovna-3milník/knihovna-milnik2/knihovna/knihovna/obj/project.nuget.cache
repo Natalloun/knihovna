@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "Xh+UKoTLnKI=",
+  "success": true,
+  "projectFilePath": "/Users/katarunstukova/Desktop/knihovna-3milník/knihovna-milnik2/knihovna/knihovna/knihovna.csproj",
+  "expectedPackageFiles": [
+    "/Users/katarunstukova/.nuget/packages/dnsclient/1.6.1/dnsclient.1.6.1.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/microsoft.extensions.logging.abstractions/2.0.0/microsoft.extensions.logging.abstractions.2.0.0.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/mongodb.bson/3.6.0/mongodb.bson.3.6.0.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/mongodb.driver/3.6.0/mongodb.driver.3.6.0.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/sharpcompress/0.30.1/sharpcompress.0.30.1.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/snappier/1.0.0/snappier.1.0.0.nupkg.sha512",
+    "/Users/katarunstukova/.nuget/packages/zstdsharp.port/0.7.3/zstdsharp.port.0.7.3.nupkg.sha512"
+  ],
+  "logs": []
+}
